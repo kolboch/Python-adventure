@@ -11,6 +11,7 @@ import numpy as np
 import numpy.core
 
 
+
 def hamming_distance(X, X_train):
     """
     :param X: zbior porownwanych obiektow N1xD
@@ -20,13 +21,9 @@ def hamming_distance(X, X_train):
     zbioru zwrocone zostana w postaci macierzy
     :return: macierz odleglosci pomiedzy obiektami z X i X_train N1xN2
     """
-    distance_results = np.empty([X.shape[0], X_train.shape[0]])
     x_array = X.toarray()
     x_train_array = X_train.toarray()
-    for x_i in range(X.shape[0]):
-        for x_train_j in range(X_train.shape[0]):
-            distance_results[x_i, x_train_j] = sum(np.logical_xor(x_array[x_i, :], x_train_array[x_train_j, :]))
-    return distance_results
+    return np.absolute(x_array.dot(x_train_array.T - 1) + (x_array - 1).dot(x_train_array.T))
     pass
 
 
