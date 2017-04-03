@@ -11,7 +11,6 @@ import numpy as np
 import numpy.core
 
 
-
 def hamming_distance(X, X_train):
     """
     :param X: zbior porownwanych obiektow N1xD
@@ -36,12 +35,18 @@ def sort_train_labels_knn(Dist, y):
     wartosci podobienstw odpowiadajacego wiersza macierzy
     Dist
     :param Dist: macierz odleglosci pomiedzy obiektami z X
-    i X_train N1xN2
-    :param y: wektor etykiet o dlugosci N2
+    i X_train N1xN2 (array)
+    :param y: wektor etykiet o dlugosci N2 (array)
     :return: macierz etykiet klas posortowana wzgledem
     wartosci podobienstw odpowiadajacego wiersza macierzy
     Dist. Uzyc algorytmu mergesort.
     """
+    result_matrix = np.empty(Dist.shape)
+    for i in range(Dist.shape[0]):
+        sort_indices = np.argsort(Dist[i], axis=-1, kind='mergesort')
+        for j in range(len(y)):
+            result_matrix[i, j] = y[sort_indices[j]]
+    return result_matrix
     pass
 
 
@@ -51,9 +56,19 @@ def p_y_x_knn(y, k):
     kazdej z klas dla obiektow ze zbioru testowego wykorzystujac
     klasfikator KNN wyuczony na danych trenningowych
     :param y: macierz posortowanych etykiet dla danych treningowych N1xN2
-    :param k: liczba najblizszuch sasiadow dla KNN
+    :param k: liczba najblizszych sasiadow dla KNN
     :return: macierz prawdopodobienstw dla obiektow z X
     """
+    number_of_classes = 4
+    result = np.empty([y.shape[0], number_of_classes])
+    for i in range(y.shape[0]):
+        for j in range(number_of_classes):
+            sum_for_class = 0
+            for x in range(k):
+                if y[i, x] == j + 1:
+                    sum_for_class = sum_for_class + 1
+            result[i, j] = sum_for_class
+    return result / k
     pass
 
 
