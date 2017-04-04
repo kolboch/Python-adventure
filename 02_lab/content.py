@@ -66,7 +66,7 @@ def p_y_x_knn(y, k):
             sum_for_class = 0
             for x in range(k):
                 if y[i, x] == j + 1:
-                    sum_for_class = sum_for_class + 1
+                    sum_for_class += 1
             result[i, j] = sum_for_class
     return result / k
     pass
@@ -80,19 +80,53 @@ def classification_error(p_y_x, y_true):
     Kazdy wiersz macierzy reprezentuje rozklad p(y|x)
     :return: blad klasyfikacji
     """
+    error_sum = 0
+    for i in range(len(y_true)):
+        chose_labels = choose_max_values_indices(p_y_x[i])
+        if y_true[i] not in chose_labels:
+            error_sum += 1
+    return error_sum / len(y_true)
     pass
 
 
-def model_selection_knn(Xval, Xtrain, yval, ytrain, k_values):
+def choose_max_values_indices(values):
+    max_current = -1  # only minus one as we deal with probabilites it's enough
+    result_labels = list()
+    for i in range(len(values)):
+        if values[i] > max_current:
+            result_labels.clear()
+            result_labels.append(i + 1)  # adding one to reflect class/ label number
+            max_current = values[i]
+        elif values[i] == max_current:
+            result_labels.clear()
+            result_labels.append(i + 1)
+    return result_labels
+    pass
+
+
+def model_selection_knn(X_val, X_train, y_val, y_train, k_values):
     """
-    :param Xval: zbior danych walidacyjnych N1xD
-    :param Xtrain: zbior danych treningowych N2xD
-    :param yval: etykiety klas dla danych walidacyjnych 1xN1
-    :param ytrain: etykiety klas dla danych treningowych 1xN2
+    :param X_val: zbior danych walidacyjnych N1xD
+    :param X_train: zbior danych treningowych N2xD
+    :param y_val: etykiety klas dla danych walidacyjnych 1xN1
+    :param y_train: etykiety klas dla danych treningowych 1xN2
     :param k_values: wartosci parametru k, ktore maja zostac sprawdzone
     :return: funkcja wykonuje selekcje modelu knn i zwraca krotke (best_error,best_k,errors), gdzie best_error to najnizszy
     osiagniety blad, best_k - k dla ktorego blad byl najnizszy, errors - lista wartosci bledow dla kolejnych k z k_values
     """
+    distance = hamming_distance(X_val, X_train)
+    sorted_labels = sort_train_labels_knn(distance, y_train)
+    min_error = float('inf')
+    min_k_index = -1
+    k_errors = np.empty(len(k_values))
+    for i in range(len(k_values)):
+        p_y_x_distribution = p_y_x_knn(sorted_labels, k_values[i])
+        current_k_error = classification_error(p_y_x_distribution, y_val)
+        if current_k_error < min_error:
+            min_error = current_k_error
+            min_k_index = i
+        k_errors[i] = current_k_error
+    return min_error,  k_values[min_k_index], k_errors
     pass
 
 
