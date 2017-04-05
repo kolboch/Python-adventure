@@ -126,7 +126,7 @@ def model_selection_knn(X_val, X_train, y_val, y_train, k_values):
             min_error = current_k_error
             min_k_index = i
         k_errors[i] = current_k_error
-    return min_error,  k_values[min_k_index], k_errors
+    return min_error, k_values[min_k_index], k_errors
     pass
 
 
@@ -135,6 +135,12 @@ def estimate_a_priori_nb(ytrain):
     :param ytrain: etykiety dla dla danych treningowych 1xN
     :return: funkcja wyznacza rozklad a priori p(y) i zwraca p_y - wektor prawdopodobienstw a priori 1xM
     """
+    unique, counts = numpy.unique(ytrain, return_counts=True)
+    labels_occurrences_dict = dict(zip(unique, counts))
+    result_vector = np.empty(len(labels_occurrences_dict))
+    for i in range(len(labels_occurrences_dict)):
+        result_vector[i] = labels_occurrences_dict[i + 1] / len(ytrain)
+    return result_vector
     pass
 
 
@@ -147,6 +153,20 @@ def estimate_p_x_y_nb(Xtrain, ytrain, a, b):
     :return: funkcja wyznacza rozklad prawdopodobienstwa p(x|y) zakladajac, ze x przyjmuje wartosci binarne i ze elementy
     x sa niezalezne od siebie. Funkcja zwraca macierz p_x_y o wymiarach MxD.
     """
+    classes_nr = 4
+
+    unique, counts = numpy.unique(ytrain, return_counts=True)
+    labels_occurrences_dict = dict(zip(unique, counts))
+    result_matrix = np.zeros([classes_nr, Xtrain.shape[1]])
+
+    for j in range(Xtrain.shape[1]):
+        for i in range(Xtrain.shape[0]):
+            if Xtrain[i, j]:
+                result_matrix[ytrain[i] - 1, j] += 1
+    result_matrix = result_matrix + a - 1
+    for i in range(classes_nr):
+        result_matrix[i] /= (labels_occurrences_dict[i + 1] + a + b - 2)
+    return result_matrix
     pass
 
 
@@ -158,6 +178,13 @@ def p_y_x_nb(p_y, p_x_1_y, X):
     :return: funkcja wyznacza rozklad prawdopodobienstwa p(y|x) dla kazdej z klas z wykorzystaniem klasyfikatora Naiwnego
     Bayesa. Funkcja zwraca macierz p_y_x o wymiarach NxM.
     """
+    print('p_y.shape:\n{}\n'.format(p_y.shape))
+    print('p_x_1_y.shape:\n{}\n'.format(p_x_1_y.shape))
+    print('X.shape:\n{}\n'.format(X.shape))
+    print('p_x_1_y:\n{}\n'.format(p_x_1_y))
+    #we need p(x), which is number of trues / total for each word (column in X), will be 1 x 20f
+    p_x = np.sum(X, axis=0) / X.shape[0]
+
     pass
 
 
@@ -174,4 +201,17 @@ def model_selection_nb(Xtrain, Xval, ytrain, yval, a_values, b_values):
     osiagniety blad, best_a - a dla ktorego blad byl najnizszy, best_b - b dla ktorego blad byl najnizszy,
     errors - macierz wartosci bledow dla wszystkich par (a,b)
     """
+    min_error = float('inf')
+    min_a_b_index = (-1, -1)
+    errors = np.empty([len(a_values),len(b_values)])
+    for i in range(len(a_values)):
+        for j in range(len(b_values)):
+            result_distribution_p_x_y = estimate_p_x_y_nb(Xtrain, ytrain, a_values[i], b_values[i])
+            p_y_x = p_y_x_nb(estimate_a_priori_nb(ytrain), result_distribution_p_x_y, Xval)
+            current_error = classification_error(p_y_x, yval)
+            errors[i, j] = current_error
+            if current_error < min_error:
+                min_error = current_error
+                min_a_b_index = (i, j)
+    return errors[min_a_b_index[0], min_a_b_index[1]], a_values[min_a_b_index[0]], b_values[min_a_b_index[1]], errors
     pass
