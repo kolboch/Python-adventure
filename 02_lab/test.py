@@ -39,14 +39,14 @@ class TestSuite(TestSuite):
     def __init__(self):
         super(TestSuite, self).__init__()
         self.addTest(makeSuite(TestHamming))
-        #self.addTest(makeSuite(TestSortTrainLabelsKNN))
-        #self.addTest(makeSuite(TestPYXKNN))
-        #self.addTest(makeSuite(TestClassificationError))
-        #self.addTest(makeSuite(TestModelSelectionKNN))
-        #self.addTest(makeSuite(TestEstimateAPrioriNB))
-        #self.addTest(makeSuite(TestEstimatePXYNB))
-        #self.addTest(makeSuite(TestPYXNB))
-        #self.addTest(makeSuite(TestModelSelectionNB))
+        self.addTest(makeSuite(TestSortTrainLabelsKNN))
+        self.addTest(makeSuite(TestPYXKNN))
+        self.addTest(makeSuite(TestClassificationError))
+        self.addTest(makeSuite(TestModelSelectionKNN))
+        self.addTest(makeSuite(TestEstimateAPrioriNB))
+        self.addTest(makeSuite(TestEstimatePXYNB))
+        self.addTest(makeSuite(TestPYXNB))
+        self.addTest(makeSuite(TestModelSelectionNB))
 
 
 class TestHamming(TestCase):

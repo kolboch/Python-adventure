@@ -82,25 +82,21 @@ def classification_error(p_y_x, y_true):
     """
     error_sum = 0
     for i in range(len(y_true)):
-        chose_labels = choose_max_values_indices(p_y_x[i])
-        if y_true[i] not in chose_labels:
+        selected_class = choose_max_label(p_y_x[i])
+        if y_true[i] != selected_class:
             error_sum += 1
     return error_sum / len(y_true)
     pass
 
 
-def choose_max_values_indices(values):
+def choose_max_label(values):
     max_current = -1  # only minus one as we deal with probabilites it's enough
-    result_labels = list()
+    min_index = -1
     for i in range(len(values)):
-        if values[i] > max_current:
-            result_labels.clear()
-            result_labels.append(i + 1)  # adding one to reflect class/ label number
+        if values[i] >= max_current:
+            min_index = i
             max_current = values[i]
-        elif values[i] == max_current:
-            result_labels.clear()
-            result_labels.append(i + 1)
-    return result_labels
+    return min_index + 1 #as we choose max label, which is index + 1
     pass
 
 
@@ -178,13 +174,23 @@ def p_y_x_nb(p_y, p_x_1_y, X):
     :return: funkcja wyznacza rozklad prawdopodobienstwa p(y|x) dla kazdej z klas z wykorzystaniem klasyfikatora Naiwnego
     Bayesa. Funkcja zwraca macierz p_y_x o wymiarach NxM.
     """
-    print('p_y.shape:\n{}\n'.format(p_y.shape))
-    print('p_x_1_y.shape:\n{}\n'.format(p_x_1_y.shape))
-    print('X.shape:\n{}\n'.format(X.shape))
-    print('p_x_1_y:\n{}\n'.format(p_x_1_y))
-    #we need p(x), which is number of trues / total for each word (column in X), will be 1 x 20f
-    p_x = np.sum(X, axis=0) / X.shape[0]
+    n_m_apriori = np.tile(p_y, (X.shape[0], 1))
+    for k in range(len(p_y)):
+        for row in range(n_m_apriori.shape[0]):
+            prob_row_x = 1
+            for d in range(X.shape[1]):
+                if X[row, d]:
+                    p_x_distribution = p_x_1_y[k, d]
+                else:
+                    p_x_distribution = 1 - p_x_1_y[k, d]
+                prob_row_x *= p_x_distribution
+            prob_row_x /= X.shape[1]
+            n_m_apriori[row, k] *= prob_row_x
 
+    for row in range(n_m_apriori.shape[0]):
+        n_m_apriori[row] /= np.sum(n_m_apriori[row])
+
+    return n_m_apriori
     pass
 
 
@@ -203,15 +209,15 @@ def model_selection_nb(Xtrain, Xval, ytrain, yval, a_values, b_values):
     """
     min_error = float('inf')
     min_a_b_index = (-1, -1)
-    errors = np.empty([len(a_values),len(b_values)])
+    errors = np.empty([len(a_values), len(b_values)])
     for i in range(len(a_values)):
         for j in range(len(b_values)):
-            result_distribution_p_x_y = estimate_p_x_y_nb(Xtrain, ytrain, a_values[i], b_values[i])
+            result_distribution_p_x_y = estimate_p_x_y_nb(Xtrain, ytrain, a_values[i], b_values[j])
             p_y_x = p_y_x_nb(estimate_a_priori_nb(ytrain), result_distribution_p_x_y, Xval)
             current_error = classification_error(p_y_x, yval)
             errors[i, j] = current_error
             if current_error < min_error:
                 min_error = current_error
                 min_a_b_index = (i, j)
-    return errors[min_a_b_index[0], min_a_b_index[1]], a_values[min_a_b_index[0]], b_values[min_a_b_index[1]], errors
+    return min_error, a_values[min_a_b_index[0]], b_values[min_a_b_index[1]], errors
     pass
