@@ -150,7 +150,6 @@ def estimate_p_x_y_nb(Xtrain, ytrain, a, b):
     x sa niezalezne od siebie. Funkcja zwraca macierz p_x_y o wymiarach MxD.
     """
     classes_nr = 4
-
     unique, counts = numpy.unique(ytrain, return_counts=True)
     labels_occurrences_dict = dict(zip(unique, counts))
     result_matrix = np.zeros([classes_nr, Xtrain.shape[1]])
@@ -159,7 +158,7 @@ def estimate_p_x_y_nb(Xtrain, ytrain, a, b):
         for i in range(Xtrain.shape[0]):
             if Xtrain[i, j]:
                 result_matrix[ytrain[i] - 1, j] += 1
-    result_matrix = result_matrix + a - 1
+    result_matrix += (a - 1)
     for i in range(classes_nr):
         result_matrix[i] /= (labels_occurrences_dict[i + 1] + a + b - 2)
     return result_matrix
@@ -174,9 +173,9 @@ def p_y_x_nb(p_y, p_x_1_y, X):
     :return: funkcja wyznacza rozklad prawdopodobienstwa p(y|x) dla kazdej z klas z wykorzystaniem klasyfikatora Naiwnego
     Bayesa. Funkcja zwraca macierz p_y_x o wymiarach NxM.
     """
-    n_m_apriori = np.tile(p_y, (X.shape[0], 1))
+    result_n_m = np.ones([X.shape[0], len(p_y)])
     for k in range(len(p_y)):
-        for row in range(n_m_apriori.shape[0]):
+        for row in range(result_n_m.shape[0]):
             prob_row_x = 1
             for d in range(X.shape[1]):
                 if X[row, d]:
@@ -185,12 +184,12 @@ def p_y_x_nb(p_y, p_x_1_y, X):
                     p_x_distribution = 1 - p_x_1_y[k, d]
                 prob_row_x *= p_x_distribution
             prob_row_x /= X.shape[1]
-            n_m_apriori[row, k] *= prob_row_x
+            result_n_m[row, k] *= (p_y[k] * prob_row_x)
 
-    for row in range(n_m_apriori.shape[0]):
-        n_m_apriori[row] /= np.sum(n_m_apriori[row])
+    for row in range(result_n_m.shape[0]):
+        result_n_m[row] /= np.sum(result_n_m[row])
 
-    return n_m_apriori
+    return result_n_m
     pass
 
 
@@ -212,8 +211,8 @@ def model_selection_nb(Xtrain, Xval, ytrain, yval, a_values, b_values):
     errors = np.empty([len(a_values), len(b_values)])
     for i in range(len(a_values)):
         for j in range(len(b_values)):
-            result_distribution_p_x_y = estimate_p_x_y_nb(Xtrain, ytrain, a_values[i], b_values[j])
-            p_y_x = p_y_x_nb(estimate_a_priori_nb(ytrain), result_distribution_p_x_y, Xval)
+            distribution_p_x_y = estimate_p_x_y_nb(Xtrain, ytrain, a_values[i], b_values[j])
+            p_y_x = p_y_x_nb(estimate_a_priori_nb(ytrain), distribution_p_x_y, Xval)
             current_error = classification_error(p_y_x, yval)
             errors[i, j] = current_error
             if current_error < min_error:
