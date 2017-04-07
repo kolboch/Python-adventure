@@ -96,7 +96,7 @@ def choose_max_label(values):
         if values[i] >= max_current:
             min_index = i
             max_current = values[i]
-    return min_index + 1 #as we choose max label, which is index + 1
+    return min_index + 1  # as we choose max label, which is index + 1
     pass
 
 
@@ -151,17 +151,11 @@ def estimate_p_x_y_nb(Xtrain, ytrain, a, b):
     """
     classes_nr = 4
     unique, counts = numpy.unique(ytrain, return_counts=True)
-    labels_occurrences_dict = dict(zip(unique, counts))
     result_matrix = np.zeros([classes_nr, Xtrain.shape[1]])
-
-    for j in range(Xtrain.shape[1]):
-        for i in range(Xtrain.shape[0]):
-            if Xtrain[i, j]:
-                result_matrix[ytrain[i] - 1, j] += 1
+    for j in range(Xtrain.shape[0]):
+        result_matrix[ytrain[j] - 1] += Xtrain[j]
     result_matrix += (a - 1)
-    for i in range(classes_nr):
-        result_matrix[i] /= (labels_occurrences_dict[i + 1] + a + b - 2)
-    return result_matrix
+    return result_matrix / (counts + a + b - 2)[:, None]
     pass
 
 
@@ -174,22 +168,12 @@ def p_y_x_nb(p_y, p_x_1_y, X):
     Bayesa. Funkcja zwraca macierz p_y_x o wymiarach NxM.
     """
     result_n_m = np.ones([X.shape[0], len(p_y)])
-    for k in range(len(p_y)):
-        for row in range(result_n_m.shape[0]):
-            prob_row_x = 1
-            for d in range(X.shape[1]):
-                if X[row, d]:
-                    p_x_distribution = p_x_1_y[k, d]
-                else:
-                    p_x_distribution = 1 - p_x_1_y[k, d]
-                prob_row_x *= p_x_distribution
-            prob_row_x /= X.shape[1]
-            result_n_m[row, k] *= (p_y[k] * prob_row_x)
-
+    X = X.toarray()
+    x_inversion = np.invert(X)
+    p_x_0_y = 1 - p_x_1_y  # p(x=0|y) probabilites
     for row in range(result_n_m.shape[0]):
-        result_n_m[row] /= np.sum(result_n_m[row])
-
-    return result_n_m
+            result_n_m[row, :] = (p_y * np.prod(p_x_0_y[:, x_inversion[row, :]], axis=1) * np.prod(p_x_1_y[:, X[row, :]], axis=1))
+    return result_n_m / np.sum(result_n_m, axis=1)[:, None]
     pass
 
 
