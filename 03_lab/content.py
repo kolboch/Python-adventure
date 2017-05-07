@@ -4,10 +4,12 @@
 #  Zadanie 3: Regresja logistyczna
 #  autorzy: A. Gonczarek, J. Kaczmar, S. Zareba
 #  2017
+#
+# implemented by K. Bochyński
 # --------------------------------------------------------------------------
 
 import numpy as np
-
+from sklearn import metrics
 
 def sigmoid(x):
     '''
@@ -28,18 +30,22 @@ def logistic_cost_function(w, x_train, y_train):
     # print('w shape {} and w[3]: {}'.format(w.shape, w[3]))
     # print('x_train shape:{}'.format(x_train.shape))
     # print('y_train shape:{}'.format(y_train.shape))
-    # computing val
+
+    N = x_train.shape[0]
+    M = x_train.shape[1]
     val = 0
-    for i in range(x_train.shape[0]):
-        val += (y_train[i] * np.log(sigmoid(np.dot(w.T, x_train[i]))) +
-                (1 - y_train[i]) * np.log(1 - sigmoid(np.dot(w.T, x_train[i]))))
-    val /= -x_train.shape[0]
-    # computing gradient
-    grad = 0
-    for i in range(x_train.shape[0]):
-        grad += x_train[i] * (y_train[i] - sigmoid(np.dot(w.T, x_train[i])))
-    # print('This is grad:{}'.format(grad))
-    grad /= -x_train.shape[0]
+    grad = np.zeros((M, 1))
+
+    for i in range(N):
+        x_i = x_train[i]
+        sigmoid_value = sigmoid(np.dot(w.T, x_i))
+        y_i = y_train[i]
+        val += (y_i * np.log(sigmoid_value) +
+                (1 - y_i) * np.log(1 - sigmoid_value))
+        grad += np.reshape(x_i.T * (y_i - sigmoid_value), (M, 1))
+    val /= -N
+    grad /= -N
+
     return val[0], grad
     pass
 
@@ -53,6 +59,20 @@ def gradient_descent(obj_fun, w0, epochs, eta):
     :return: funkcja wykonuje optymalizacje metoda gradientu prostego dla funkcji obj_fun. Zwraca krotke (w,func_values),
     gdzie w oznacza znaleziony optymalny punkt w, a func_valus jest wektorem wartosci funkcji [epochs x 1] we wszystkich krokach algorytmu
     '''
+
+    w = w0
+    func_values = []
+
+    for k in range(epochs):
+        val, delta_w = obj_fun(w)
+        func_values.append(val)
+        w += eta * -delta_w
+    func_values.__delitem__(0)
+
+    val, _ = obj_fun(w)
+    func_values.append(val)
+
+    return w, np.reshape(np.array(func_values), (epochs, 1))
     pass
 
 
@@ -93,6 +113,10 @@ def prediction(x, w, theta):
     :return: funkcja wylicza wektor y o wymiarach Nx1. Wektor zawiera wartosci etykiet ze zbioru {0,1} dla obserwacji z x
      bazujac na modelu z parametrami w oraz progu klasyfikacji theta
     '''
+    y = np.zeros(x.shape[0])
+    for i in range(x.shape[0]):
+        y[i] = 1 if sigmoid(w.T @ x[i]) > theta else 0
+    return y.astype(int).reshape(x.shape[0], 1)
     pass
 
 
@@ -102,6 +126,7 @@ def f_measure(y_true, y_pred):
     :param y_pred: wektor etykiet przewidzianych przed model Nx1
     :return: funkcja wylicza wartosc miary F
     '''
+    return metrics.f1_score(y_true, y_pred)
     pass
 
 
