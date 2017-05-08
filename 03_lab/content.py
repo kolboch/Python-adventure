@@ -97,14 +97,13 @@ def stochastic_gradient_descent(obj_fun, x_train, y_train, w0, epochs, eta, mini
     batches_x = []
     batches_y = []
     for batch_i in range(number_of_mini_batches):
-        batch_begin = batch_i * batch_size
-        batches_x.append(x_train[batch_begin:batch_begin + batch_size])
-        batches_y.append(y_train[batch_begin:batch_begin + batch_size])
+        batches_x.append(x_train[batch_i * batch_size: (batch_i + 1) * batch_size])
+        batches_y.append(y_train[batch_i * batch_size: (batch_i + 1) * batch_size])
 
     for k in range(epochs):
         for batch_i in range(number_of_mini_batches):
             _, delta_w = obj_fun(w, batches_x[batch_i], batches_y[batch_i])
-            w += eta * -delta_w
+            w = w + eta * -delta_w
         val, _ = obj_fun(w, x_train, y_train)
         func_values.append(val)
 
@@ -192,12 +191,12 @@ def model_selection(x_train, y_train, x_val, y_val, w0, epochs, eta, mini_batch,
     lambda_best = -1
     theta_best = -1
     w_best = np.zeros(w0.shape)
-    f_measures = np.zeros((lambdas.shape[0], thetas.shape[0]))
+    f_measures = np.zeros((len(lambdas), len(thetas)))
 
-    for lambda_i in range(lambdas.shape[0]):
+    for lambda_i in range(len(lambdas)):
         reg_logistic_partial = partial(regularized_logistic_cost_function, regularization_lambda=lambdas[lambda_i])
         w, _ = stochastic_gradient_descent(reg_logistic_partial, x_train, y_train, w0, epochs, eta, mini_batch)
-        for theta_j in range(thetas.shape[0]):
+        for theta_j in range(len(thetas)):
             f_measure_i_j = f_measure(y_val, prediction(x_val, w, thetas[theta_j]))
             f_measures[lambda_i, theta_j] = f_measure_i_j
             if f_measure_i_j > f_measure_best:
