@@ -9,6 +9,8 @@
 
 import pickle as pkl
 import numpy as np
+import matplotlib.pyplot as plt
+import scipy.spatial as spt
 
 TRAIN_DATA_FILE_PATH = 'train.pkl'
 NUMBER_OF_LABELS = 36
@@ -28,16 +30,26 @@ def predict(x):
     """
     x_train, y_train = load_training_data()
 
-    cut = 5000
-
+    cut = 3000
     x_train = prepare_x(x_train[:cut])
     x = prepare_x(x)
+
+    y_val = y_train[13000:14000]
+
+    # x_train = x_train[:cut]  # cutting x train set
     y_train = y_train[:cut]  # cutting y train set
 
-    distance = hamming_distance(x > 0, x_train > 0)
+    distance = euclidean_distance(x, x_train)
     index_min_distances = np.argmin(distance, axis=1)  # N x 1
+    predictions = y_train[index_min_distances]  # N x 1
+    error = measure_error(predictions, y_val)
+    print('error:{}'.format(error))
     return y_train[index_min_distances]
     pass
+
+
+def euclidean_distance(x_array, x_train_array):
+    return spt.distance.cdist(x_array, x_train_array, metric='jaccard')
 
 
 def hamming_distance(x_array, x_train_array):
@@ -48,5 +60,38 @@ def hamming_distance(x_array, x_train_array):
 def prepare_x(x_to_prepare):
     N = x_to_prepare.shape[0]
     x = np.reshape(x_to_prepare, (N, 56, 56))
-    x = np.reshape(x[:, 3:-3, 3:-3], (N, 2500))
+    rc_cut = 4
+    x = np.reshape(x[:, rc_cut:-rc_cut, rc_cut:-rc_cut], (N, (56 - rc_cut * 2) ** 2))
+
+    # test v 2
+    # x = x_to_prepare[:, :2500]
     return x
+
+
+def measure_error(y_predicted, y_true):
+    error = 0
+    print('predictions size:{}'.format(y_predicted.shape))
+    print('y_true size:{}'.format(y_true.shape))
+    for i in range(y_predicted.shape[0]):
+        if y_predicted[i] != y_true[i]:
+            error += 1
+    return error / y_predicted.shape[0]
+
+
+def show_images(x_set, indices):
+    for i in range(len(indices)):
+        image = np.reshape(x_set[indices[i]], (56, 56))
+        plt.imshow(image)
+        plt.show()
+
+
+def show_reshaped_image(x_set, indices):
+    for i in range(len(indices)):
+        image = x_set[indices[i]]
+        plt.imshow(image)
+        plt.show()
+
+
+if __name__ == "__main__":
+    x, y = load_training_data()
+    predict(x[13000:14000])
