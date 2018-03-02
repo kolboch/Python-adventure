@@ -36,11 +36,13 @@ class ReversedFlowDistance(FitnessRater):
         if self.distances is None or self.flows is None:
             raise AttributeError('Distances and flows not provided.')
         scores = np.empty(individuals.shape[0])
-
-        for i in range(0, individuals.shape[0]):
+        individuals_number = individuals.shape[0]
+        problem_size = individuals.shape[1]
+        for i in range(0, individuals_number):
             score_buffer = 0
-            for j in range(0, individuals.shape[1]):
-                score_buffer += np.sum((self.distances[j] * self.flows[individuals[i][j]]))
-            scores[i] = score_buffer / 2
-
-        return 1 / scores
+            current = individuals[i]
+            for j in range(0, problem_size):  # A, B, C, ...
+                for k in range(j + 1, problem_size):  # AB, AC, AD ...
+                    score_buffer += self.distances[j][k] * self.flows[current[j]][current[k]]
+            scores[i] = score_buffer
+        return scores
