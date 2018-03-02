@@ -25,7 +25,7 @@ class Population:
 
     def generate(self, problem_size):
         pop_size = self._population_size
-        individuals = np.empty(shape=(pop_size, problem_size))
+        individuals = np.empty(shape=(pop_size, problem_size), dtype=int)
         for i in range(pop_size):
             temp = [i for i in range(problem_size)]
             shuffle(temp)
