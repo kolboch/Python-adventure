@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Generator:
+class GeneratorQAP:
     def __init__(self, problem_size=5, min_distance=1, max_distance=20, min_flow_cost=0, max_flow_cost=20,
                  symmetrical_flows=True):
         self._problem_size = problem_size
