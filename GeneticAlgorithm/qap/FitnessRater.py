@@ -41,8 +41,8 @@ class ReversedFlowDistance(FitnessRater):
         for i in range(0, individuals_number):
             score_buffer = 0
             current = individuals[i]
-            for j in range(0, problem_size):  # A, B, C, ...
-                for k in range(j + 1, problem_size):  # AB, AC, AD ...
+            for j in range(0, problem_size):
+                for k in range(j + 1, problem_size):
                     score_buffer += self.distances[j][k] * self.flows[current[j]][current[k]]
             scores[i] = score_buffer
-        return scores
+        return 1 / scores

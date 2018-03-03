@@ -1,6 +1,6 @@
 import numpy as np
 from random import shuffle
-from crossovers.CrossoverOX import CrossoverOX
+from crossovers.OrderCrossover import CrossoverOX
 
 
 # argument for crossover selection ? / random/ do we need crossover probability?
@@ -13,7 +13,6 @@ class Population:
         self._mutation_probability = mutation_probability
         self._best_survives = best_survives
         self._crossover = crossover
-        pass
 
     @property
     def individuals(self):
@@ -33,7 +32,7 @@ class Population:
         self._individuals = individuals
 
     def pass_generation(self, scores):
-        # eliminate poor performing ones
+        # eliminate poor performing ones aka selection
         # generate children ----- crossover
         # mutate random guys ;) ----- mutation method
         pass
