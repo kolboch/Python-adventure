@@ -1,12 +1,12 @@
 import numpy as np
 from random import shuffle
-from crossovers.OrderCrossover import CrossoverOX
+from crossovers.OrderCrossover import CrossoverOrdered
 
 
 # argument for crossover selection ? / random/ do we need crossover probability?
 class Population:
     def __init__(self, population_size=10, survive_percentage=70,
-                 mutation_probability=0.08, best_survives=False, crossover=CrossoverOX()):
+                 mutation_probability=0.08, best_survives=False, crossover=CrossoverOrdered()):
         self._individuals = None
         self._population_size = population_size
         self._survive_percentage = survive_percentage

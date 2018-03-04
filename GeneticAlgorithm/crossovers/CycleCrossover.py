@@ -2,5 +2,5 @@ from crossovers.CrossoverInterface import Crossover
 
 
 class CrossoverCX(Crossover):
-    def crossover(self):
-        print('hello from CX')
+    def crossover(self, individual_1, individual_2):
+        pass
