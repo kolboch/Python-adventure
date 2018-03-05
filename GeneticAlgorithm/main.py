@@ -4,6 +4,8 @@ from genetic.Population import Population
 from qap.FitnessRater import ReversedFlowDistance
 from selection_algorithms.Selection import TournamentSelector, RouletteSelector
 from crossovers.OrderCrossover import CrossoverOrdered
+from crossovers.PartialMappedCrossover import CrossoverPartiallyMapped
+from crossovers.CycleCrossover import CrossoverCycle
 
 sample_distances = np.array([[0, 22, 53, 53],
                              [22, 0, 40, 62],
@@ -48,9 +50,9 @@ selector.select(scores, int(population_size * survivability_percentage / 100))
 # print('individuals \n {}'.format(individuals))
 # print('scores \n {}'.format(scores))
 
-ind1 = np.array([9, 8, 4, 5, 6, 7, 1, 3, 2, 0])
-ind2 = np.array([8, 7, 1, 2, 3, 0, 9, 5, 4, 6])
-crossover_sample = CrossoverOrdered()
-print('{} \n{}'.format(ind1, ind2))
+ind1 = np.array([0, 1, 2, 3, 4, 5, 6])
+ind2 = np.array([4, 3, 5, 6, 1, 2, 0])
+crossover_sample = CrossoverCycle()
+print('{} \n{}\n'.format(ind1, ind2))
 res1, res2 = crossover_sample.crossover(ind1, ind2)
-print('{} \n{}'.format(res1, res2))
+print('\n\n{} \n{}'.format(res1, res2))
