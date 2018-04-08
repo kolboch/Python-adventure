@@ -21,7 +21,53 @@ class LatinSquare(ProblemCSP):
             raise ValueError('This value is not supported. Choose one of AlgorithmCSP values.')
 
     def solve_forward_checking(self):
-        pass
+        self.matrix = np.full(shape=(self.n, self.n), fill_value=self.default_value, dtype=int)
+        solved = False
+        while not solved:
+            self.init_domains()
+            solved = self.forward_solve_util(0, 0)
+        return self.matrix
+
+    def forward_solve_util(self, x, y):
+        for value in self.domains_matrix[x][y]:
+            self.matrix[x, y] = value
+            self.validate_domains_matrix(x, y, value)
+            if (x == self.n - 1 and y == self.n - 1) or self.forward_solve_util(*(self.next_indices(x, y))):
+                return True
+            self.matrix[x, y] = self.default_value
+            self.restore_domains_from(x, y)
+        return False
+
+    def init_domains(self):
+        self.domains_matrix = [[[z for z in range(1, self.n + 1)] for _ in range(self.n)] for _ in
+                               range(self.n)]
+
+    # EAFP rule here, if element already not in list just ignore exception
+    def validate_domains_matrix(self, x, y, value):
+        # all to the right
+        for i in range(y, self.n):
+            try:
+                self.domains_matrix[x][i].remove(value)
+            except ValueError:
+                pass
+        # all to the bottom
+        for j in range(x, self.n):
+            try:
+                self.domains_matrix[j][y].remove(value)
+            except ValueError:
+                pass
+
+    def restore_domains_from(self, x, y):
+        # all to the right
+        row_values = self.matrix[x]
+        for i in range(y + 1, self.n):
+            self.domains_matrix[x][i] = [z for z in range(1, self.n + 1) if
+                                         z not in row_values and z not in [row[i] for row in self.matrix]]
+        # all to the bottom
+        column_values = [row[y] for row in self.matrix]
+        for j in range(x + 1, self.n):
+            self.domains_matrix[j][y] = [z for z in range(1, self.n + 1) if
+                                         z not in column_values]
 
     def solve_backtracking(self):
         self.matrix = np.full(shape=(self.n, self.n), fill_value=0, dtype=int)
