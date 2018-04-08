@@ -1,10 +1,12 @@
-from problems_csp.problems_CSP import GraphColorL21
+from problems_csp.graph_coloring import GraphColorL21
 from CSP import AlgorithmCSP
 from matplotlib import colors
 import matplotlib.pyplot as plt
-import numpy as np
+from problems_csp.latin_square import LatinSquare
+import sys
 
-problem_size = 5
+sys.setrecursionlimit(2000)
+problem_size = 13
 cmap = colors.ListedColormap(['lightblue', 'lightgreen', 'yellow', 'orange', 'grey'])
 
 coloring = GraphColorL21(problem_size, AlgorithmCSP.BACKTRACKING, None)
@@ -15,10 +17,18 @@ img = plt.imshow(result, interpolation='nearest', origin='lower', cmap=cmap)
 plt.colorbar()
 plt.title("Graph colouring L(2, 1)")
 plt.show()
-#
-# colors = 3
-# x = 5
-# y = 5
-# my_list = [[[z for z in range(colors)] for y in range(3)] for x in range(2)]
-# del my_list[0][0][0]
-# print(my_list)
+
+latin_problem_size = 10
+cmap_latin = plt.cm.jet
+latin = LatinSquare(latin_problem_size, AlgorithmCSP.BACKTRACKING, None)
+result_latin = latin.solve()
+
+img = plt.imshow(result_latin, interpolation='nearest', origin='lower', cmap=cmap_latin)
+plt.grid = False
+plt.colorbar()
+plt.title("Latin square, N= {}".format(latin_problem_size))
+plt.show()
+
+print(result_latin)
+
+
